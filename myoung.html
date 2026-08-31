@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>명함 예절 마스터</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .game-container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 500px; text-align: center; }
+        h1 { color: #2c3e50; font-size: 22px; margin-bottom: 20px; }
+        .score-board { font-size: 14px; color: #7f8c8d; margin-bottom: 15px; }
+        .question { font-size: 16px; font-weight: bold; color: #34495e; margin-bottom: 20px; line-height: 1.5; min-height: 50px; }
+        .btn-container { display: flex; flex-direction: column; gap: 10px; }
+        button { padding: 12px 15px; border: 1px solid #3498db; background-color: white; color: #3498db; border-radius: 6px; font-size: 14px; cursor: pointer; transition: all 0.2s; }
+        button:hover { background-color: #3498db; color: white; }
+        .feedback { margin-top: 20px; font-size: 14px; font-weight: bold; min-height: 40px; line-height: 1.4; }
+        .correct { color: #27ae60; }
+        .wrong { color: #e74c3c; }
+        .next-btn { margin-top: 15px; background-color: #2ecc71; color: white; border: none; display: none; width: 100%; }
+        .next-btn:hover { background-color: #27ae60; }
+    </style>
+</head>
+<body>
+
+<div class="game-container">
+    <h1>💼 명함 예절 마스터</h1>
+    <div class="score-board">점수: <span id="score">0</span> / <span id="total">0</span></div>
+    <div id="quiz-box">
+        <div class="question" id="question">문제를 불러오는 중...</div>
+        <div class="btn-container" id="options"></div>
+        <div class="feedback" id="feedback"></div>
+        <button class="next-btn" id="next-btn" onclick="nextQuestion()">다음 문제로</button>
+    </div>
+</div>
+
+<script>
+const quizData = [
+    {
+        question: "상대방과 명함을 주고받을 때, 기본 자세로 옳은 것은?",
+        options: ["앉아서 편하게 건넨다.", "서서 양손으로 건넨다.", "한 손으로 빠르게 건넨다."],
+        answer: 1,
+        exp: "명함은 반드시 서서 양손으로 주고받는 것이 기본 예의입니다."
+    },
+    {
+        question: "명함을 건넬 때 글자의 방향은 어떻게 해야 할까요?",
+        options: ["내가 읽기 편한 방향", "상대방이 읽기 편한 방향", "상관없음"],
+        answer: 1,
+        exp: "상대방이 바로 이름을 확인할 수 있도록 상대방 기준 정방향으로 건넵니다."
+    },
+    {
+        question: "동시에 명함을 주고받아야 하는 경우 옳은 방법은?",
+        options: ["왼손으로 주고 오른손으로 받는다.", "오른손으로 주고 왼손으로 받는다.", "상대방 명함을 먼저 빼앗는다."],
+        answer: 1,
+        exp: "오른손으로 내 명함을 건네고, 왼손으로 상대방의 명함을 받습니다."
+    },
+    {
+        question: "받은 명함은 미팅 중에 어떻게 보관해야 할까요?",
+        options: ["주머니나 지갑에 즉시 넣는다.", "테이블 위에 깔끔하게 놓아둔다.", "손으로 접으며 만지작거린다."],
+        answer: 1,
+        exp: "대화 중 상대의 이름과 직함을 확인할 수 있도록 테이블 우측에 놓아둡니다."
+    },
+    {
+        question: "상급자와 명함을 주고받을 때 순서로 옳은 것은?",
+        options: ["손아랫사람(아랫사람)이 먼저 건넨다.", "손윗사람(상급자)이 먼저 건넨다.", "누구든 먼저 내는 사람이 임자다."],
+        answer: 0,
+        exp: "명함은 보통 아랫사람이나 방문자가 먼저 건네는 것이 예의입니다."
+    }
+];
+
+let currentQ = 0;
+let score = 0;
+
+function loadQuiz() {
+    const q = quizData[currentQ];
+    document.getElementById("question").innerText = `Q${currentQ + 1}. ${q.question}`;
+    document.getElementById("total").innerText = quizData.length;
+    document.getElementById("score").innerText = score;
+    
+    const optionsHolder = document.getElementById("options");
+    optionsHolder.innerHTML = "";
+    document.getElementById("feedback").innerText = "";
+    document.getElementById("next-btn").style.display = "none";
+
+    q.options.forEach((opt, idx) => {
+        const btn = document.createElement("button");
+        btn.innerText = opt;
+        btn.onclick = () => checkAnswer(idx);
+        optionsHolder.appendChild(btn);
+    });
+}
+
+function checkAnswer(selected) {
+    const q = quizData[currentQ];
+    const feedbackEl = document.getElementById("feedback");
+    const btns = document.querySelectorAll(".btn-container button");
+    
+    btns.forEach(b => b.disabled = true);
+
+    if(selected === q.answer) {
+        score++;
+        feedbackEl.className = "feedback correct";
+        feedbackEl.innerText = "⭕ 정답입니다!\n" + q.exp;
+    } else {
+        feedbackEl.className = "feedback wrong";
+        feedbackEl.innerText = "❌ 오답입니다.\n" + q.exp;
+    }
+    
+    document.getElementById("score").innerText = score;
+    
+    if(currentQ < quizData.length - 1) {
+        document.getElementById("next-btn").style.display = "block";
+    } else {
+        document.getElementById("next-btn").innerText = "결과 보기";
+        document.getElementById("next-btn").style.display = "block";
+    }
+}
+
+function nextQuestion() {
+    currentQ++;
+    if(currentQ < quizData.length) {
+        loadQuiz();
+    } else {
+        showFinalResult();
+    }
+}
+
+function showFinalResult() {
+    const quizBox = document.getElementById("quiz-box");
+    quizBox.innerHTML = `
+        <h2>🎉 테스트 완료!</h2>
+        <p>최종 점수: <strong>${score} / ${quizData.length}</strong></p>
+        <p>${score === quizData.length ? "완벽합니다! 비즈니스 매너 마스터이시네요." : "조금만 더 연습하면 완벽한 비즈니스 매너를 갖출 수 있습니다."}</p>
+        <button onclick="location.reload()" style="background-color:#3498db; color:white;">다시 도전하기</button>
+    `;
+}
+
+loadQuiz();
+</script>
+</body>
+</html>
